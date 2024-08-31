@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Fichier permettant de calculer les échanges d'énergie de la batterie (charge et décharge)
+et publier les cumuls sur le dbus dans les chemins prévus par victron
+Les cumuls sont historisés chaque heure dans la clé usb
+Le code est lancé automatiquement lorsque le Multiplus est mis en marche et tourne en boucle
+Il est préférable d'arrêter le code avant d'éteindre le Multiplus en créant un fichier kill vide dans le répertoire du fichier
+Le fichier kill est effacé lors de l'arrêt
+Ceci a pour effet d'enregistrer les valeurs actuelles dans la clé usb branchée sur le multiplus
 
+	Chaenergie chargée 
+"""
 import dbus
 import datetime
 import time
