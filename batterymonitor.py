@@ -91,7 +91,9 @@ class BatteryMonitor(object):
       os._exit(1)
     #initialiser temps de la dernière lecture
     self.last_seen = datetime.now()
-    log.debug('Battery monitor initialized')
+    log.info('Battery monitor initialized')
+    log.info('/historicChargedEnergy: %s', self.dbus_objects['charged']['value'])
+    log.info('/historicDischargedEnergy: %s', self.dbus_objects['discharged']['value'])
 
   #pour terminer la boucle permanente de façon propre
   def __exit_program__ (self):
