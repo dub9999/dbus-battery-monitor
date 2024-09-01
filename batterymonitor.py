@@ -30,7 +30,7 @@ import logging
 log = logging.getLogger()
 
 NAME = os.path.basename(__file__)
-VERSION = "0.01"
+VERSION = "1.01"
 
 __all__ = ['NAME', 'VERSION']
 
@@ -46,10 +46,10 @@ class BatteryMonitor(object):
     self.bus=dbus.SessionBus() if 'DBUS_SESSION_BUS_ADDRESS' in os.environ else dbus.SystemBus()
     self.dbus_name='com.victronenergy.battery.socketcan_can0'
     self.dbus_objects={
-      'voltage' : {'path' : '/Dc/0/Voltage', 'value' : 10, 'proxy' : None},
-      'current' : {'path' : '/Dc/0/Current', 'value' : 10, 'proxy' : None},
-      'charged' : {'path' : '/History/ChargedEnergy', 'value' : 10, 'proxy' : None},
-      'discharged' : {'path' : '/History/DischargedEnergy', 'value' : 10, 'proxy' : None}
+      'voltage' : {'path' : '/Dc/0/Voltage', 'value' : 0, 'proxy' : None},
+      'current' : {'path' : '/Dc/0/Current', 'value' : 0, 'proxy' : None},
+      'charged' : {'path' : '/History/ChargedEnergy', 'value' : 0, 'proxy' : None},
+      'discharged' : {'path' : '/History/DischargedEnergy', 'value' : 0, 'proxy' : None}
     }
     # Temps systeme lors de la dernière lecture
     self.last_seen = None
@@ -76,7 +76,7 @@ class BatteryMonitor(object):
       self.dbus_objects['discharged']['value'] = discharged_index
     #initialiser les échanges avec le dbus
     try:
-      # initialiser les proxy
+      # initialiser les proxies
       for name, dbus_object in self.dbus_objects.items():
         dbus_object['proxy'] = self.bus.get_object(self.dbus_name, dbus_object['path'], introspect=False)
       #écrire les index
@@ -139,7 +139,7 @@ class BatteryMonitor(object):
     interval = this_time - self.last_seen
     self.last_seen = this_time
     # Calculer l'énergie transférée dans l'intervalle en utilisant les valeurs de tension et de courant stockées
-    # Calcul en mWh en arrondissant les valeurs de tension et de courant à 2 digits
+    # Calcul en kWh
     if (interval.total_seconds() > 0):
       energy = (self.dbus_objects['voltage']['value'] * self.dbus_objects['current']['value'] * interval.total_seconds())/3600000
     else:

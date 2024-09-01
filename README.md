@@ -1,7 +1,7 @@
 # dbus-battery-monitor
 
 Initially developped to populate /Historic/ChargedEnergy and Historic/DischargedEnergy
-on a system using a Multiplus II GX with Pylontec Batteries connect over canbus
+on a system using a Multiplus II GX with Pylontec Batteries connected over canbus
 as these values are not automatically populated by Pylontec batteries.
 
 Reads battery current and voltage values on the dbus at a high rate interval (100 ms)
@@ -25,5 +25,6 @@ To lauch automatically at system start up, insert a rc.local file in /data
   python3 /data/dbus-battery-monitor/batterymonitor.py
 
 To lauch manually from console ./run.sh while in the /data/dbus-battery-monitor folder
+Nota: do not forget to make run.sh file executable after transferring the module in the Multiplus
 
 
