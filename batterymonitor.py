@@ -68,8 +68,8 @@ class BatteryMonitor(object):
         except:
             log.error(f'exception occured during __update_dbus__(): ', exc_info=True)
             success=False
-            #initialiser temps de la dernière lecture
-            self.last_seen = datetime.now()
+        #initialiser temps de la dernière lecture
+        self.last_seen = datetime.now()
         return success
 
     #to read an index value in a file
@@ -152,6 +152,7 @@ class BatteryMonitor(object):
                 self.dbus_entities['voltage']['value'] * self.dbus_entities['current']['value']
                 * interval.total_seconds()
                 )/3600000
+            self.values_refreshed=False
         else:
             energy = 0
         # Mettre à jour les valeurs dans l'array
@@ -160,7 +161,7 @@ class BatteryMonitor(object):
         elif (energy < 0):
             self.dbus_entities['discharged']['value'] -= energy
         #update values on dbus
-        self.__update_dbus__()
+        self.values_refreshed=self.__update_dbus__()
         # Historiser toutes les heures
         if datetime.now().minute == 0 and self.is_historized == False:
             self.__save__()
