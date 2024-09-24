@@ -28,7 +28,7 @@ __all__ = ['NAME', 'VERSION']
 
 FOLDER = os.path.dirname(os.path.abspath(__file__))
 DEF_PATH = "/run/media/sda1"
-LOGFILE = '/projects.log'
+LOGFILE = '/batterymonitor.log'
 
 UPDATE_INTERVAL = 100
 
@@ -93,12 +93,12 @@ class BatteryMonitor(object):
         filename=self.file_path+'/index_charged'
         index=self.dbus_entities['charged']['value']
         self.__write_index__(filename, index)
-        log.info(f'{self.dbus_entities["charged"]["path"]} saved in {filename}')
+        log.debug(f'{self.dbus_entities["charged"]["path"]} saved in {filename}')
         #écrire l'index de décharge
         filename=self.file_path+'/index_discharged'
         index=self.dbus_entities['discharged']['value']
         self.__write_index__(filename, index)
-        log.info(f'{self.dbus_entities["discharged"]["path"]} saved in {filename}')
+        log.debug(f'{self.dbus_entities["discharged"]["path"]} saved in {filename}')
 
     #to nicely end the glib loop
     def __soft_exit__(self):
@@ -141,35 +141,38 @@ class BatteryMonitor(object):
         if os.path.isfile(FOLDER+'/kill'):
             os.remove(FOLDER+'/kill')
             self.__soft_exit__()
-        #get system time and calculate time lag since last calculation
-        this_time =	datetime.now()
-        interval = this_time - self.last_seen
-        self.last_seen = this_time
-        #calculate energy using previously stored values 
-        # Calcul en kWh
-        if self.values_refreshed and (interval.total_seconds() > 0):
-            energy = (
-                self.dbus_entities['voltage']['value'] * self.dbus_entities['current']['value']
-                * interval.total_seconds()
-                )/3600000
-            self.values_refreshed=False
-        else:
-            energy = 0
-        # Mettre à jour les valeurs dans l'array
-        if (energy > 0): 
-            self.dbus_entities['charged']['value'] += energy
-        elif (energy < 0):
-            self.dbus_entities['discharged']['value'] -= energy
-        #update values on dbus
-        self.values_refreshed=self.__update_dbus__()
-        # Historiser toutes les heures
-        if datetime.now().minute == 0 and self.is_historized == False:
-            self.__save__()
-            self.is_historized=True
+        try:
+            #get system time and calculate time lag since last calculation
+            this_time =	datetime.now()
+            interval = this_time - self.last_seen
+            self.last_seen = this_time
+            #calculate energy using previously stored values 
+            # Calcul en kWh
+            if self.values_refreshed and (interval.total_seconds() > 0):
+                energy = (
+                    self.dbus_entities['voltage']['value'] * self.dbus_entities['current']['value']
+                    * interval.total_seconds()
+                    )/3600000
+                self.values_refreshed=False
+            else:
+                energy = 0
+            # Mettre à jour les valeurs dans l'array
+            if (energy >= 0): 
+                self.dbus_entities['charged']['value'] += energy
+            elif (energy < 0):
+                self.dbus_entities['discharged']['value'] -= energy
+            #update values on dbus
+            self.values_refreshed=self.__update_dbus__()
+            # Historiser toutes les heures
+            if datetime.now().minute == 0 and self.is_historized == False:
+                self.__save__()
+                self.is_historized=True
         
-        if datetime.now().minute != 0 and self.is_historized == True:
-            self.is_historized = False
-
+            if datetime.now().minute != 0 and self.is_historized == True:
+                self.is_historized = False
+        except:
+            log.error('uncaught exception in update', exc_info=True)
+         
         return True
 
 def main():
