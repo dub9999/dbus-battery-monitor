@@ -7,6 +7,7 @@ import dbus.mainloop.glib
 import faulthandler
 import signal
 import os
+import stat
 import sys
 from time import tzset
 from datetime import datetime
@@ -27,7 +28,8 @@ VERSION = "0.01"
 __all__ = ['NAME', 'VERSION']
 
 FOLDER = os.path.dirname(os.path.abspath(__file__))
-DEF_PATH = "/run/media/sda1"
+USB_PATH = "/run/media/sda1"
+DEF_PATH = (USB_PATH if (os.path.exists(USB_PATH) and (os.access(USB_PATH, os.W_OK) == True)) else FOLDER)
 LOGFILE = '/batterymonitor.log'
 
 UPDATE_INTERVAL = 100
@@ -51,7 +53,7 @@ class BatteryMonitor(object):
         # Last recorded system time
         self.last_seen = None
         # Path for file exchange
-        self.file_path=(DEF_PATH if os.path.exists(DEF_PATH) else FOLDER)
+        self.file_path=DEF_PATH
         self.is_historized=True
         self.values_refreshed=False
 
@@ -177,7 +179,7 @@ class BatteryMonitor(object):
 
 def main():
     logging.basicConfig(
-        filename=(DEF_PATH+LOGFILE if os.path.exists(DEF_PATH) else os.path.abspath(__file__)+'.log'),
+        filename=(DEF_PATH+LOGFILE),
         format='%(asctime)s - %(levelname)s - %(filename)-8s %(message)s', 
         datefmt="%Y-%m-%d %H:%M:%S", 
         level=logging.INFO
@@ -187,7 +189,7 @@ def main():
     log.info('------------------------------------------------------------')
     log.info(
      f'started, logging to '
-        f'{DEF_PATH+LOGFILE if os.path.exists(DEF_PATH) else os.path.abspath(__file__)+".log"}'
+        f'{DEF_PATH+LOGFILE}'
         )
 
     signal.signal(signal.SIGINT, lambda s, f: os._exit(1))
