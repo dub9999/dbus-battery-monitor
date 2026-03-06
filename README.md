@@ -1,6 +1,6 @@
 # dbus-battery-monitor
 
-Initially developped to populate /Historic/ChargedEnergy and Historic/DischargedEnergy
+To populate /Historic/ChargedEnergy and Historic/DischargedEnergy
 on a system using a Multiplus II GX with Pylontec Batteries connected over canbus
 as these values are not automatically populated by Pylontec batteries.
 

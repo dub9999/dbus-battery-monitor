@@ -116,24 +116,30 @@ class BatteryMonitor(object):
         discharged_index=self.__read_index__(self.file_path+'/index_discharged')
         if isinstance (discharged_index, (float)):
             self.dbus_entities['discharged']['value'] = discharged_index
-        try:
-            for name, dbus_entity in self.dbus_entities.items():
-                #initialize dbus objects
-                self.dbus_objects[name]=VeDbusItemImport(self.bus, self.dbus_name, dbus_entity['path'])
-            #write battery/history
-            self.dbus_objects['charged'].set_value(self.dbus_entities['charged']['value'])
-            self.dbus_objects['discharged'].set_value(self.dbus_entities['discharged']['value'])
-            #read voltage and current
-            self.dbus_entities['voltage']['value'] = self.dbus_objects['voltage'].get_value()
-            self.dbus_entities['current']['value'] = self.dbus_objects['current'].get_value()
-            self.values_refreshed=True
-            self.last_seen = datetime.now()
-        except:
-            log.error(
-                f' {NAME}: exception occured during init(), program aborted',
-                exc_info=True
-                )
-            os._exit(1)
+        # make a loop to try init until success
+        while True:
+            # try to init the dbus path and write values
+            try:    
+                for name, dbus_entity in self.dbus_entities.items():
+                    #initialize dbus objects
+                    self.dbus_objects[name]=VeDbusItemImport(self.bus, self.dbus_name, dbus_entity['path'])
+                #write battery/history
+                self.dbus_objects['charged'].set_value(self.dbus_entities['charged']['value'])
+                self.dbus_objects['discharged'].set_value(self.dbus_entities['discharged']['value'])
+                #read voltage and current
+                self.dbus_entities['voltage']['value'] = self.dbus_objects['voltage'].get_value()
+                self.dbus_entities['current']['value'] = self.dbus_objects['current'].get_value()
+                self.values_refreshed=True
+                self.last_seen = datetime.now()
+            # if exception occurs, give possibility to abort and retry until it works
+            except:
+                #if a file named kill exists in the folder of this file, exit the program
+                if os.path.isfile(FOLDER+'/kill'):
+                    os.remove(FOLDER+'/kill')
+                    self.__soft_exit__()
+                continue
+            # break the loop when init completed
+            break
         log.info(f'{self.dbus_entities["charged"]["path"]} = {self.dbus_entities["charged"]["value"]}')
         log.info(f'{self.dbus_entities["discharged"]["path"]} = {self.dbus_entities["discharged"]["value"]}')
 
